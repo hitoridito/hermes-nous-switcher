@@ -15,13 +15,15 @@ First detect my OS, shell, Python, Git, Hermes install path, Hermes profile/home
 
 Set it up safely for my platform. Keep it localhost-only. Do not print or store any tokens. Prefer a local venv if Hermes' own Python venv is not present. Start the app and tell me the local URL.
 
+For the initial install check, do not call POST /api/set and do not modify my Hermes config. Verify only with safe read-only checks such as GET /api/health, GET /api/current, and GET /api/catalog. Wait for me to choose a model before writing config or applying a default.
+
 If my OS or Hermes install layout is not supported, stop and explain the caveat instead of forcing Linux-specific paths. If my Hermes Desktop needs the fresh-new-chat default reseed patch for full no-Settings behavior, explain the caveat and ask before changing Desktop source.
 ```
 
 If you prefer the Hermes CLI one-shot style:
 
 ```bash
-hermes chat -q 'Please install and run the local Nous Switcher from https://github.com/hitoridito/hermes-nous-switcher. First detect my OS, shell, Python, Git, Hermes install path, Hermes profile/home, and whether Hermes Desktop is running. Clone the repo into a sensible local tools directory, then read README.md and skills/hermes-nous-switcher/SKILL.md before acting. Set it up safely for my platform. Keep it localhost-only. Do not print or store any tokens. Prefer a local venv if Hermes own Python venv is not present. Start the app and tell me the local URL. If my OS or Hermes install layout is not supported, stop and explain the caveat instead of forcing Linux-specific paths. If my Hermes Desktop needs the fresh-new-chat default reseed patch for full no-Settings behavior, explain the caveat and ask before changing Desktop source.'
+hermes chat -q 'Please install and run the local Nous Switcher from https://github.com/hitoridito/hermes-nous-switcher. First detect my OS, shell, Python, Git, Hermes install path, Hermes profile/home, and whether Hermes Desktop is running. Clone the repo into a sensible local tools directory, then read README.md and skills/hermes-nous-switcher/SKILL.md before acting. Set it up safely for my platform. Keep it localhost-only. Do not print or store any tokens. Prefer a local venv if Hermes own Python venv is not present. Start the app and tell me the local URL. For the initial install check, do not call POST /api/set and do not modify my Hermes config. Verify only with safe read-only checks such as GET /api/health, GET /api/current, and GET /api/catalog. Wait for me to choose a model before writing config or applying a default. If my OS or Hermes install layout is not supported, stop and explain the caveat instead of forcing Linux-specific paths. If my Hermes Desktop needs the fresh-new-chat default reseed patch for full no-Settings behavior, explain the caveat and ask before changing Desktop source.'
 ```
 
 ![Nous Switcher screenshot](screenshots/nous-switcher.png)

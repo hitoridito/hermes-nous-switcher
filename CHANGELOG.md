@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.7 — read-only first-contact install
+
+- Tightens the Hermes-native onboarding prompt: initial install verification must not call `POST /api/set` or modify the user's Hermes config.
+- Updates the public skill verification checklist to use read-only endpoints first (`/api/health`, `/api/current`, `/api/catalog`).
+- Requires explicit user model choice/permission before writing config during setup.
+
 ## 0.1.6 — platform-aware onboarding
 
 - Updates the Hermes-native install prompt to require OS/shell/Python/Hermes-path detection before acting.

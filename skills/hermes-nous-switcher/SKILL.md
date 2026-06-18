@@ -89,6 +89,19 @@ If the platform is not Linux-like or the Hermes install layout is unknown, do no
 
    On macOS/Windows, or any system without `/proc`, treat this step as unsupported/best-effort for now: skip live Apply, keep config/catalog writes, and explain that the user may need Hermes Settings → Apply until a native dashboard discovery path exists.
 
+## Initial Install Verification Must Be Read-Only
+
+When installing this for a user, do not probe `POST /api/set` just to prove writes work. That changes the user's real Hermes default, even if you restore it afterward.
+
+Initial setup verification should use only:
+
+- `GET /api/health`
+- `GET /api/current`
+- `GET /api/catalog` or `GET /api/catalog?refresh=true`
+- OS-level bind checks such as `netstat`/`ss` showing `127.0.0.1:<port>` only
+
+Only call `POST /api/set` after the user explicitly chooses a model or explicitly asks to test model-setting behavior.
+
 ## Desktop New-Chat Caveat
 
 Hermes Desktop can have sticky renderer composer state (`$currentModel` / `$currentProvider`) that affects new chat creation. In that case, writing `config.yaml` and calling backend Apply may still not change the next chat until Settings → Apply updates the renderer state.
@@ -143,6 +156,7 @@ A good minimal UI has:
 - Do not require API keys for public catalog fetches.
 - Write config atomically and create backups.
 - Never log dashboard session tokens.
+- Do not call `POST /api/set` during initial installation; wait for explicit model choice/permission.
 - On non-Linux systems, skip `/proc`-based Desktop Apply and report the limitation clearly.
 - Keep active-session hot-swap out of scope unless Hermes exposes a stable session model-switch API.
 
@@ -151,7 +165,9 @@ A good minimal UI has:
 - `python3 -m py_compile *.py`
 - `GET /api/health` returns current version.
 - `GET /api/catalog` returns models.
-- `POST /api/set` returns `success: true`.
-- Hermes `config.yaml` contains the selected model.
-- Hermes Desktop `/api/model/info` reports the selected provider/model after Apply.
+- `GET /api/current` reports the existing Hermes default without modifying it.
+- The server is bound to loopback only.
+- Do not call `POST /api/set` unless the user explicitly chooses a model or asks to test writes.
+- After an explicit model choice, Hermes `config.yaml` contains the selected model.
+- Hermes Desktop `/api/model/info` reports the selected provider/model after Apply where supported.
 - Creating a fresh Hermes chat uses the selected default, if the Desktop fresh-draft reseed patch is present.
