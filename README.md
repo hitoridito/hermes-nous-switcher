@@ -4,6 +4,22 @@ A tiny local web app for browsing the Nous model catalog and setting the default
 
 Built for our own Hermes setup first. Shared as an early alpha for other Hermes tinkerers who want a quick, local way to compare Nous models by price/context/capabilities and make one the default.
 
+## Give this to your Hermes
+
+Copy/paste this into a Hermes Agent session with terminal access:
+
+```text
+Please install and run the local Nous Switcher from https://github.com/hitoridito/hermes-nous-switcher.
+
+Clone it into a sensible local tools directory, read README.md and skills/hermes-nous-switcher/SKILL.md first, then set it up safely for my Hermes profile. Keep it localhost-only. Do not print or store any tokens. Start the app and tell me the local URL. If my Hermes Desktop needs the fresh-new-chat default reseed patch for full no-Settings behavior, explain the caveat and ask before changing Desktop source.
+```
+
+If you prefer the Hermes CLI one-shot style:
+
+```bash
+hermes chat -q 'Please install and run the local Nous Switcher from https://github.com/hitoridito/hermes-nous-switcher. Clone it into a sensible local tools directory, read README.md and skills/hermes-nous-switcher/SKILL.md first, then set it up safely for my Hermes profile. Keep it localhost-only. Do not print or store any tokens. Start the app and tell me the local URL. If my Hermes Desktop needs the fresh-new-chat default reseed patch for full no-Settings behavior, explain the caveat and ask before changing Desktop source.'
+```
+
 ![Nous Switcher screenshot](screenshots/nous-switcher.png)
 
 ## Status
