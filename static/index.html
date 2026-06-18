@@ -1,0 +1,647 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nous Switcher</title>
+<style>
+  /* ---------------------------------------------------------------
+     Tokens — warm dark, dignity-first. Mirrors the Dito Atelier /
+     Hito Machina palette. No build step; variables in :root.
+     --------------------------------------------------------------- */
+  :root {
+    --bg:           #1a1410;
+    --surface:      #221a14;
+    --surface-2:    #2b2118;
+    --border:       #3a2e25;
+    --border-soft:  #2e251d;
+    --text:         #e8dccb;
+    --text-soft:    #bcae9b;
+    --text-mute:    #8a7d6c;
+    --accent:       #c87544;
+    --accent-soft:  #d88554;
+    --accent-dim:   #6b3f24;
+    --success:      #7ba05b;
+    --warn:         #c4a458;
+    --error:        #c4654c;
+    --shadow:       0 1px 0 rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.35);
+    --radius:       6px;
+    --mono:         ui-monospace, "JetBrains Mono", "Fira Code", "SF Mono", Menlo, Consolas, monospace;
+    --sans:         ui-sans-serif, system-ui, -apple-system, "Segoe UI", Inter, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--accent-soft); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ---------------------------------------------------------------
+     Layout
+     --------------------------------------------------------------- */
+  .page {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+  }
+
+  header.app-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-soft);
+    margin-bottom: 24px;
+  }
+  header.app-header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: 0.01em;
+  }
+  header.app-header .sub {
+    color: var(--text-mute);
+    font-size: 12px;
+    margin-top: 2px;
+  }
+  header.app-header .right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 11px;
+    color: var(--text-soft);
+    background: var(--surface);
+  }
+  .badge.live   { color: var(--success); border-color: rgba(123,160,91,0.4); }
+  .badge.cache  { color: var(--text-soft); }
+  .badge.stale  { color: var(--warn); border-color: rgba(196,164,88,0.4); }
+  .badge.err    { color: var(--error); border-color: rgba(196,101,76,0.4); }
+
+  /* ---------------------------------------------------------------
+     Current default strip
+     --------------------------------------------------------------- */
+  .current {
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    margin-bottom: 20px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 12px 18px;
+    align-items: center;
+  }
+  .current .label {
+    grid-row: 1 / span 2;
+    font-size: 11px;
+    color: var(--text-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    align-self: center;
+  }
+  .current .model-name { font-size: 15px; font-weight: 500; }
+  .current .model-id   { font-family: var(--mono); color: var(--text-soft); font-size: 12px; }
+  .current .provider   { font-size: 12px; color: var(--text-mute); justify-self: end; }
+
+  /* ---------------------------------------------------------------
+     Controls — search + filters
+     --------------------------------------------------------------- */
+  .controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .search {
+    flex: 1 1 240px;
+    min-width: 200px;
+    display: flex;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+    padding: 0 10px;
+  }
+  .search:focus-within { border-color: var(--accent-dim); }
+  .search input {
+    flex: 1;
+    background: transparent;
+    border: 0;
+    outline: 0;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    padding: 9px 6px;
+  }
+  .search input::placeholder { color: var(--text-mute); }
+  .search .count {
+    color: var(--text-mute);
+    font-size: 12px;
+    padding-left: 8px;
+    border-left: 1px solid var(--border-soft);
+    margin-left: 8px;
+  }
+
+  .filters, .sort-wrap {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .sort-wrap label {
+    color: var(--text-mute);
+    font-size: 12px;
+  }
+  select.sort {
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    color: var(--text-soft);
+    border-radius: var(--radius);
+    padding: 6px 10px;
+    font-family: var(--sans);
+    font-size: 12px;
+  }
+  select.sort:focus { outline: 0; border-color: var(--accent-dim); }
+  .chip {
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    color: var(--text-soft);
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+  }
+  .chip:hover { color: var(--text); border-color: var(--border); }
+  .chip.on {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: #f5e6d6;
+  }
+
+  /* ---------------------------------------------------------------
+     Buttons
+     --------------------------------------------------------------- */
+  button.btn {
+    background: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 7px 12px;
+    border-radius: var(--radius);
+    font-family: var(--sans);
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 120ms ease, border-color 120ms ease;
+  }
+  button.btn:hover { background: #332820; border-color: var(--border); }
+  button.btn:active { background: #281f18; }
+  button.btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #1a1410;
+    font-weight: 500;
+  }
+  button.btn.primary:hover { background: var(--accent-soft); border-color: var(--accent-soft); }
+  button.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.btn.icon { padding: 6px 10px; }
+
+  /* ---------------------------------------------------------------
+     Model list
+     --------------------------------------------------------------- */
+  .list {
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px 16px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-soft);
+    cursor: pointer;
+    transition: background 100ms ease;
+  }
+  .row:last-child { border-bottom: 0; }
+  .row:hover { background: var(--surface-2); }
+  .row.is-current {
+    background: rgba(200, 117, 68, 0.06);
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+  .row .name {
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .row .id {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-mute);
+  }
+  .row .meta {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    font-size: 12px;
+    color: var(--text-soft);
+    align-items: center;
+  }
+  .row .meta .k { color: var(--text-mute); }
+  .row .meta .v { font-family: var(--mono); }
+  .row .meta .caps { display: flex; gap: 4px; }
+  .row .right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .cap {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 2px 6px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text-mute);
+  }
+  .cap.vision    { color: #c4a458; border-color: rgba(196,164,88,0.3); }
+  .cap.reasoning { color: #9b8ec9; border-color: rgba(155,142,201,0.3); }
+  .cap.free      { color: var(--success); border-color: rgba(123,160,91,0.3); }
+
+  /* Empty / loading / error states */
+  .state {
+    padding: 40px;
+    text-align: center;
+    color: var(--text-mute);
+    font-size: 13px;
+  }
+  .state .err { color: var(--error); }
+
+  /* ---------------------------------------------------------------
+     Toast / inline feedback
+     --------------------------------------------------------------- */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 16px;
+    font-size: 13px;
+    box-shadow: var(--shadow);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 180ms ease, transform 180ms ease;
+    z-index: 10;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(-4px); }
+  .toast.ok    { border-color: rgba(123,160,91,0.5); }
+  .toast.err   { border-color: rgba(196,101,76,0.5); }
+
+  .footer {
+    margin-top: 18px;
+    color: var(--text-mute);
+    font-size: 11px;
+    text-align: center;
+  }
+  .footer code { font-family: var(--mono); color: var(--text-soft); }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="app-header">
+    <div>
+      <h1>Nous Switcher</h1>
+      <div class="sub">Set the default model for new Hermes sessions · applies to next conversation</div>
+    </div>
+    <div class="right">
+      <span id="src-badge" class="badge cache">…</span>
+      <button class="btn icon" id="refresh-btn" title="Force re-fetch from Nous Portal">↻ Refresh</button>
+    </div>
+  </header>
+
+  <section class="current" id="current-strip">
+    <div class="label">Current default</div>
+    <div>
+      <div class="model-name" id="cur-name">—</div>
+      <div class="model-id"   id="cur-id">—</div>
+    </div>
+    <div class="provider" id="cur-provider">—</div>
+  </section>
+
+  <div class="controls">
+    <div class="search">
+      <input id="search" type="search" placeholder="Search by name or id…" autocomplete="off" spellcheck="false">
+      <span class="count" id="count">0</span>
+    </div>
+    <div class="sort-wrap">
+      <label for="sort">Sort</label>
+      <select id="sort" class="sort">
+        <option value="catalog">Catalog order</option>
+        <option value="input_price">Cheapest input</option>
+        <option value="output_price">Cheapest output</option>
+        <option value="context">Largest context</option>
+        <option value="name">Name A–Z</option>
+      </select>
+    </div>
+    <div class="filters">
+      <span class="chip" data-filter="vision">Vision</span>
+      <span class="chip" data-filter="reasoning">Reasoning</span>
+      <span class="chip" data-filter="free">Free</span>
+    </div>
+  </div>
+
+  <div class="list" id="list">
+    <div class="state">Loading catalog…</div>
+  </div>
+
+  <div class="footer">
+    Nous Switcher v<span id="version">…</span> ·
+    Catalog source: <code id="src-url">…</code> ·
+    Config: <code id="cfg-path">…</code>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+  // -----------------------------------------------------------------
+  // State
+  // -----------------------------------------------------------------
+  const state = {
+    models: [],
+    source: '',
+    fetched_at: 0,
+    current: { provider: '', default: '', base_url: '' },
+    search: '',
+    filters: new Set(),
+    sort: 'catalog',
+    saving: false,
+  };
+
+  // -----------------------------------------------------------------
+  // DOM helpers
+  // -----------------------------------------------------------------
+  const $ = (sel) => document.querySelector(sel);
+  const escapeHtml = (s) => String(s ?? '').replace(/[&<>"']/g, c => (
+    {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]
+  ));
+  const fmtTime = (epoch) => {
+    if (!epoch) return '—';
+    const d = new Date(epoch * 1000);
+    return d.toLocaleString();
+  };
+  const fmtContext = (n) => {
+    if (!n) return '—';
+    if (n >= 1024 * 1024) return (n / (1024 * 1024)).toFixed(1) + 'M';
+    if (n >= 1024) return Math.round(n / 1024) + 'K';
+    return String(n);
+  };
+  const priceValue = (s) => {
+    if (!s || s === '?') return Number.POSITIVE_INFINITY;
+    if (s === 'free') return 0;
+    const n = Number(String(s).replace(/[^0-9.]/g, ''));
+    return Number.isFinite(n) ? n : Number.POSITIVE_INFINITY;
+  };
+
+  // -----------------------------------------------------------------
+  // Toast
+  // -----------------------------------------------------------------
+  let toastTimer = null;
+  function toast(msg, kind = 'ok') {
+    const el = $('#toast');
+    el.textContent = msg;
+    el.className = 'toast show ' + kind;
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.className = 'toast ' + kind; }, 2400);
+  }
+
+  // -----------------------------------------------------------------
+  // API
+  // -----------------------------------------------------------------
+  async function api(path, opts = {}) {
+    const res = await fetch(path, {
+      headers: { 'Content-Type': 'application/json' },
+      ...opts,
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      let detail = text;
+      try { detail = JSON.parse(text).detail || text; } catch (_) {}
+      throw new Error(`${res.status} ${detail}`);
+    }
+    return res.json();
+  }
+
+  async function loadHealth() {
+    try {
+      const h = await api('/api/health');
+      $('#version').textContent = h.version;
+      $('#cfg-path').textContent = h.config_path;
+    } catch (e) { /* non-fatal */ }
+  }
+
+  async function loadCurrent() {
+    const c = await api('/api/current');
+    state.current = c;
+    const name = c.default
+      ? (state.models.find(m => m.id === c.default)?.name || c.default)
+      : '— (no default set)';
+    $('#cur-name').textContent = name;
+    $('#cur-id').textContent   = c.default || '—';
+    $('#cur-provider').textContent = c.provider ? `provider: ${c.provider}` : '—';
+  }
+
+  async function loadCatalog({ refresh = false } = {}) {
+    const list = $('#list');
+    list.innerHTML = '<div class="state">Loading catalog…</div>';
+    const data = await api('/api/catalog' + (refresh ? '?refresh=true' : ''));
+    state.models = data.models || [];
+    state.source = data.source;
+    state.fetched_at = data.fetched_at;
+
+    const badge = $('#src-badge');
+    badge.className = 'badge ' + (
+      data.source === 'live' ? 'live' :
+      data.source === 'cache' ? 'cache' :
+      data.source === 'cache_stale' ? 'stale' : 'err'
+    );
+    badge.textContent = data.source + ' · ' + data.count + ' models';
+    badge.title = data.warning || ('fetched ' + fmtTime(data.fetched_at));
+
+    if (data.warning) toast(data.warning, 'err');
+    await loadCurrent();
+    render();
+  }
+
+  // -----------------------------------------------------------------
+  // Render
+  // -----------------------------------------------------------------
+  function visibleModels() {
+    const q = state.search.trim().toLowerCase();
+    const f = state.filters;
+    const filtered = state.models.filter(m => {
+      if (q && !(m.name.toLowerCase().includes(q) || m.id.toLowerCase().includes(q))) return false;
+      if (f.has('vision')    && !m.supports_vision) return false;
+      if (f.has('reasoning') && !m.supports_reasoning) return false;
+      if (f.has('free')      && !m.is_free) return false;
+      return true;
+    });
+
+    const withIndex = filtered.map((m, i) => ({ m, i }));
+    const byStable = (cmp) => withIndex.sort((a, b) => cmp(a.m, b.m) || a.i - b.i).map(x => x.m);
+    if (state.sort === 'input_price') {
+      return byStable((a, b) => priceValue(a.prompt_price_per_mtok) - priceValue(b.prompt_price_per_mtok));
+    }
+    if (state.sort === 'output_price') {
+      return byStable((a, b) => priceValue(a.completion_price_per_mtok) - priceValue(b.completion_price_per_mtok));
+    }
+    if (state.sort === 'context') {
+      return byStable((a, b) => (b.context_length || 0) - (a.context_length || 0));
+    }
+    if (state.sort === 'name') {
+      return byStable((a, b) => String(a.name || a.id).localeCompare(String(b.name || b.id)));
+    }
+    return filtered;
+  }
+
+  function render() {
+    const list = $('#list');
+    const models = visibleModels();
+    $('#count').textContent = models.length + ' / ' + state.models.length;
+
+    if (state.models.length === 0) {
+      list.innerHTML = '<div class="state"><div class="err">No models in catalog.</div>'
+        + '<div>Try clicking ↻ Refresh — the live fetch may have failed.</div></div>';
+      return;
+    }
+    if (models.length === 0) {
+      list.innerHTML = '<div class="state">No models match the current search/filters.</div>';
+      return;
+    }
+
+    const html = models.map(m => {
+      const isCurrent = m.id === state.current.default;
+      const caps = [];
+      if (m.supports_vision) caps.push('<span class="cap vision">vision</span>');
+      if (m.supports_reasoning) caps.push('<span class="cap reasoning">reasoning</span>');
+      if (m.is_free) caps.push('<span class="cap free">free</span>');
+      return `
+        <div class="row${isCurrent ? ' is-current' : ''}" data-id="${escapeHtml(m.id)}" title="${escapeHtml(m.description || '')}">
+          <div>
+            <div class="name">${escapeHtml(m.name)}</div>
+            <div class="id">${escapeHtml(m.id)}</div>
+          </div>
+          <div class="right">
+            <button class="btn ${isCurrent ? 'primary' : ''}" data-set="${escapeHtml(m.id)}" ${state.saving ? 'disabled' : ''}>
+              ${isCurrent ? '✓ Current' : 'Set as default'}
+            </button>
+          </div>
+          <div class="meta">
+            <span><span class="k">ctx</span> <span class="v">${fmtContext(m.context_length)}</span></span>
+            <span><span class="k">in</span>  <span class="v">${escapeHtml(m.prompt_price_per_mtok || '?')}/M</span></span>
+            <span><span class="k">out</span> <span class="v">${escapeHtml(m.completion_price_per_mtok || '?')}/M</span></span>
+            ${m.knowledge_cutoff ? `<span><span class="k">cutoff</span> <span class="v">${escapeHtml(m.knowledge_cutoff)}</span></span>` : ''}
+            <span class="caps">${caps.join('')}</span>
+          </div>
+        </div>`;
+    }).join('');
+    list.innerHTML = html;
+  }
+
+  // -----------------------------------------------------------------
+  // Actions
+  // -----------------------------------------------------------------
+  async function setDefault(modelId) {
+    if (state.saving) return;
+    state.saving = true;
+    render();
+    try {
+      const r = await api('/api/set', {
+        method: 'POST',
+        body: JSON.stringify({ model_id: modelId, provider: 'nous' }),
+      });
+      toast(`Default applied for new Hermes chats: ${modelId}`, 'ok');
+      await loadCurrent();
+    } catch (e) {
+      toast('Failed: ' + e.message, 'err');
+    } finally {
+      state.saving = false;
+      render();
+    }
+  }
+
+  // -----------------------------------------------------------------
+  // Event wiring
+  // -----------------------------------------------------------------
+  document.addEventListener('click', (e) => {
+    const setBtn = e.target.closest('[data-set]');
+    if (setBtn) {
+      e.stopPropagation();
+      setDefault(setBtn.dataset.set);
+      return;
+    }
+    const chip = e.target.closest('.chip');
+    if (chip) {
+      const f = chip.dataset.filter;
+      if (state.filters.has(f)) state.filters.delete(f);
+      else state.filters.add(f);
+      chip.classList.toggle('on');
+      render();
+      return;
+    }
+    const row = e.target.closest('.row');
+    if (row && !e.target.closest('button')) {
+      setDefault(row.dataset.id);
+    }
+  });
+
+  $('#search').addEventListener('input', (e) => {
+    state.search = e.target.value;
+    render();
+  });
+  $('#sort').addEventListener('change', (e) => {
+    state.sort = e.target.value;
+    render();
+  });
+  $('#refresh-btn').addEventListener('click', () => loadCatalog({ refresh: true }));
+
+  // -----------------------------------------------------------------
+  // Boot
+  // -----------------------------------------------------------------
+  (async function boot() {
+    await loadHealth();
+    try {
+      $('#src-url').textContent = '/v1/models (inference-api.nousresearch.com)';
+      await loadCatalog();
+    } catch (e) {
+      $('#list').innerHTML = '<div class="state"><div class="err">Failed to load catalog.</div>'
+        + '<div>' + escapeHtml(e.message) + '</div></div>';
+      $('#src-badge').textContent = 'error';
+      $('#src-badge').className = 'badge err';
+    }
+  })();
+</script>
+</body>
+</html>
