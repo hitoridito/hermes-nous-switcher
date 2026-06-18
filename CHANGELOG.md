@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.6 — platform-aware onboarding
+
+- Updates the Hermes-native install prompt to require OS/shell/Python/Hermes-path detection before acting.
+- Documents Linux as the primary tested path and macOS/Windows as alpha/best-effort for the local app.
+- Adds a Windows PowerShell launcher (`start.ps1`).
+- Makes Linux Desktop Apply discovery fail soft on systems without `/proc` instead of crashing.
+
 ## 0.1.5 — public-alpha cleanup
 
 - Removes the experimental `hermes://model/current` deep-link launch path from Nous Switcher. On KDE/Electron it could trigger a scary crash reporter dialog from the short-lived helper process even when the main Hermes app was fine.

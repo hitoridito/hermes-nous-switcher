@@ -11,16 +11,30 @@ Copy/paste this into a Hermes Agent session with terminal access:
 ```text
 Please install and run the local Nous Switcher from https://github.com/hitoridito/hermes-nous-switcher.
 
-Clone it into a sensible local tools directory, read README.md and skills/hermes-nous-switcher/SKILL.md first, then set it up safely for my Hermes profile. Keep it localhost-only. Do not print or store any tokens. Start the app and tell me the local URL. If my Hermes Desktop needs the fresh-new-chat default reseed patch for full no-Settings behavior, explain the caveat and ask before changing Desktop source.
+First detect my OS, shell, Python, Git, Hermes install path, Hermes profile/home, and whether Hermes Desktop is running. Clone the repo into a sensible local tools directory, then read README.md and skills/hermes-nous-switcher/SKILL.md before acting.
+
+Set it up safely for my platform. Keep it localhost-only. Do not print or store any tokens. Prefer a local venv if Hermes' own Python venv is not present. Start the app and tell me the local URL.
+
+If my OS or Hermes install layout is not supported, stop and explain the caveat instead of forcing Linux-specific paths. If my Hermes Desktop needs the fresh-new-chat default reseed patch for full no-Settings behavior, explain the caveat and ask before changing Desktop source.
 ```
 
 If you prefer the Hermes CLI one-shot style:
 
 ```bash
-hermes chat -q 'Please install and run the local Nous Switcher from https://github.com/hitoridito/hermes-nous-switcher. Clone it into a sensible local tools directory, read README.md and skills/hermes-nous-switcher/SKILL.md first, then set it up safely for my Hermes profile. Keep it localhost-only. Do not print or store any tokens. Start the app and tell me the local URL. If my Hermes Desktop needs the fresh-new-chat default reseed patch for full no-Settings behavior, explain the caveat and ask before changing Desktop source.'
+hermes chat -q 'Please install and run the local Nous Switcher from https://github.com/hitoridito/hermes-nous-switcher. First detect my OS, shell, Python, Git, Hermes install path, Hermes profile/home, and whether Hermes Desktop is running. Clone the repo into a sensible local tools directory, then read README.md and skills/hermes-nous-switcher/SKILL.md before acting. Set it up safely for my platform. Keep it localhost-only. Do not print or store any tokens. Prefer a local venv if Hermes own Python venv is not present. Start the app and tell me the local URL. If my OS or Hermes install layout is not supported, stop and explain the caveat instead of forcing Linux-specific paths. If my Hermes Desktop needs the fresh-new-chat default reseed patch for full no-Settings behavior, explain the caveat and ask before changing Desktop source.'
 ```
 
 ![Nous Switcher screenshot](screenshots/nous-switcher.png)
+
+## Platform support
+
+Current state:
+
+- **Linux + Hermes Desktop:** primary tested path.
+- **Other Linux desktops:** expected to work for the local web app; Desktop Apply/fresh-chat behavior may vary.
+- **macOS / Windows:** the FastAPI app and catalog/config writer may work with a normal Python venv, but the live Hermes Desktop Apply helper is currently Linux-focused because it discovers the dashboard process via `/proc`. On these systems, use this as an alpha and have Hermes explain the unsupported pieces before changing anything.
+
+The app should fail soft: if live Desktop Apply is unavailable, it can still write config/catalog overlay and report a warning instead of crashing.
 
 ## Status
 
@@ -61,6 +75,8 @@ See `skills/hermes-nous-switcher/SKILL.md` for the agent-readable explanation an
 
 ## Run locally
 
+### Linux / macOS shell
+
 From this directory:
 
 ```bash
@@ -84,9 +100,33 @@ If that does not exist, create your own venv and install:
 ```bash
 python3 -m venv .venv
 . .venv/bin/activate
-pip install fastapi uvicorn ruamel.yaml
+python -m pip install -r requirements.txt
 python server.py
 ```
+
+### Windows PowerShell
+
+```powershell
+.\start.ps1
+```
+
+Or manually:
+
+```powershell
+py -3 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python server.py
+```
+
+Then open:
+
+```text
+http://127.0.0.1:9120
+```
+
+Windows support is alpha: catalog browsing and config writing may work, but the live Desktop Apply helper is Linux-focused until a Windows dashboard discovery path is added.
+
 
 ## Files
 
@@ -99,7 +139,8 @@ nous_switcher/
 ├── hermes_desktop_apply.py     Live Hermes Desktop Apply endpoint caller
 ├── static/index.html           Single-file vanilla JS UI
 ├── skills/hermes-nous-switcher/SKILL.md
-├── start.sh
+├── start.sh                    Linux/macOS launcher
+├── start.ps1                   Windows PowerShell launcher
 └── README.md
 ```
 

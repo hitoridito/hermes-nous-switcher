@@ -20,6 +20,19 @@ Use this skill when you want a small local Hermes companion app that:
 - makes full-catalog Nous models visible in Hermes Settings,
 - and avoids the common Desktop state pitfalls.
 
+## First: Detect Platform
+
+Before installing or modifying anything, detect and report:
+
+- OS and shell (Linux/macOS/Windows, bash/zsh/PowerShell/etc.)
+- Python command and version
+- Git availability
+- Hermes install path and active Hermes home/profile
+- whether Hermes Desktop is running
+- whether `/proc` exists (needed by the current Linux Desktop Apply discovery path)
+
+If the platform is not Linux-like or the Hermes install layout is unknown, do not force Linux paths. Set up only the safe local web app pieces, explain what is unsupported, and ask before changing Hermes Desktop source.
+
 ## Core Pattern
 
 1. Fetch the public Nous/OpenRouter-compatible model catalog:
@@ -62,7 +75,7 @@ Use this skill when you want a small local Hermes companion app that:
 
    Put the selected model first in the overlay so picker payload caps do not hide it.
 
-6. If Hermes Desktop is running, call its live Apply endpoint, matching Settings → Apply:
+6. On Linux-like systems, if Hermes Desktop is running, call its live Apply endpoint, matching Settings → Apply:
 
    ```http
    POST http://127.0.0.1:<dashboard-port>/api/model/set
@@ -72,7 +85,9 @@ Use this skill when you want a small local Hermes companion app that:
    {"scope":"main","provider":"nous","model":"<model-id>"}
    ```
 
-   Discover the dashboard port from the local dashboard process and read `HERMES_DASHBOARD_SESSION_TOKEN` from that same-user process environment. Do not print, store, or return the token.
+   The current helper discovers the dashboard port from the local dashboard process via `/proc` and reads `HERMES_DASHBOARD_SESSION_TOKEN` from that same-user process environment. Do not print, store, or return the token.
+
+   On macOS/Windows, or any system without `/proc`, treat this step as unsupported/best-effort for now: skip live Apply, keep config/catalog writes, and explain that the user may need Hermes Settings → Apply until a native dashboard discovery path exists.
 
 ## Desktop New-Chat Caveat
 
@@ -122,11 +137,13 @@ A good minimal UI has:
 
 ## Safety Checklist
 
+- Detect OS/shell/Python/Hermes home before assuming paths.
 - Bind server to `127.0.0.1` only.
 - Restrict CORS to localhost.
 - Do not require API keys for public catalog fetches.
 - Write config atomically and create backups.
 - Never log dashboard session tokens.
+- On non-Linux systems, skip `/proc`-based Desktop Apply and report the limitation clearly.
 - Keep active-session hot-swap out of scope unless Hermes exposes a stable session model-switch API.
 
 ## Verification

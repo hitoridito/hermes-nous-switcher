@@ -64,8 +64,18 @@ def _read_environ(pid: int) -> dict[str, str]:
 
 
 def _dashboard_pids() -> list[int]:
+    """Return local Hermes dashboard PIDs on Linux-like systems.
+
+    The current Desktop Apply discovery path relies on /proc and is therefore
+    best-effort/Linux-focused. On macOS/Windows, or locked-down systems without
+    /proc, return an empty list so config writes still work and callers get a
+    clear "backend not found" warning instead of a crash.
+    """
+    proc = "/proc"
+    if not os.path.isdir(proc):
+        return []
     out: list[int] = []
-    for pid in os.listdir("/proc"):
+    for pid in os.listdir(proc):
         if not pid.isdigit():
             continue
         cmd = _read_cmdline(pid)
