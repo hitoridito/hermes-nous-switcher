@@ -4,6 +4,14 @@ A tiny local web app for browsing the Nous model catalog and setting the default
 
 Built for our own Hermes setup first. Shared as an early alpha for other Hermes tinkerers who want a quick, local way to compare Nous models by price/context/capabilities and make one the default.
 
+Official links:
+
+- [Hermes Agent](https://github.com/NousResearch/hermes-agent)
+- [Hermes Agent docs](https://hermes-agent.nousresearch.com/docs)
+- [Nous Research](https://nousresearch.com/)
+
+Not affiliated with or endorsed by Nous Research; just a small community/local utility built around Hermes Agent and the public Nous model catalog.
+
 ## Give this to your Hermes
 
 Copy/paste this into a Hermes Agent session with terminal access:

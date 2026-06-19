@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.10 — official links
+
+- Adds tasteful official links to Hermes Agent, Hermes Agent docs, and Nous Research.
+- Adds a non-affiliation note so the project does not overclaim endorsement.
+
 ## 0.1.9 — first-contact model provenance
 
 - Adds a README first-contact install note naming the installing model: Hermes Desktop Windows with Minimax M3 (Medium).
