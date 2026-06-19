@@ -31,6 +31,8 @@ Before installing or modifying anything, detect and report:
 - whether Hermes Desktop is running
 - whether `/proc` exists (needed by the current Linux Desktop Apply discovery path)
 
+Windows note: Hermes Desktop can use `%LOCALAPPDATA%\hermes` as its active home/config path when that directory exists. Do not assume `~/.hermes` is active; it may exist as a stale/legacy config. Prefer the path Hermes Desktop itself resolves.
+
 If the platform is not Linux-like or the Hermes install layout is unknown, do not force Linux paths. Set up only the safe local web app pieces, explain what is unsupported, and ask before changing Hermes Desktop source.
 
 ## Core Pattern
@@ -101,6 +103,18 @@ Initial setup verification should use only:
 - OS-level bind checks such as `netstat`/`ss` showing `127.0.0.1:<port>` only
 
 Only call `POST /api/set` after the user explicitly chooses a model or explicitly asks to test model-setting behavior.
+
+## Windows First-Contact Result
+
+A Windows/MINGW64 first-contact install confirmed:
+
+- The repo can be cloned and run from a fresh Hermes session.
+- A local `.venv` works well when Hermes' bundled venv layout varies.
+- `HERMES_HOME` should be pointed at the active Desktop home, e.g. `%LOCALAPPDATA%\hermes`, not blindly at `~/.hermes`.
+- Because live Desktop Apply is Linux-focused, the user may need to open Hermes Settings → Apply after selecting a model.
+- New Hermes sessions then use the selected default.
+
+Possible Windows UI quirk: after Settings → Apply, the model pill/current-chat display may appear to change for an already-running chat. Verify by switching away and back; the ongoing session can still retain its original model while new sessions use the new default.
 
 ## Desktop New-Chat Caveat
 

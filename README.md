@@ -36,6 +36,8 @@ Current state:
 - **Other Linux desktops:** expected to work for the local web app; Desktop Apply/fresh-chat behavior may vary.
 - **macOS / Windows:** the FastAPI app and catalog/config writer may work with a normal Python venv, but the live Hermes Desktop Apply helper is currently Linux-focused because it discovers the dashboard process via `/proc`. On these systems, use this as an alpha and have Hermes explain the unsupported pieces before changing anything.
 
+Windows first-contact note: Hermes Desktop may use `%LOCALAPPDATA%\hermes` as the active Hermes home/config path instead of `~/.hermes`. In one Windows test, `~/.hermes` existed but was stale, while the live config was under `%LOCALAPPDATA%\hermes`. Have Hermes detect this before starting the server.
+
 The app should fail soft: if live Desktop Apply is unavailable, it can still write config/catalog overlay and report a warning instead of crashing.
 
 ## Status
@@ -127,7 +129,9 @@ Then open:
 http://127.0.0.1:9120
 ```
 
-Windows support is alpha: catalog browsing and config writing may work, but the live Desktop Apply helper is Linux-focused until a Windows dashboard discovery path is added.
+Windows support is alpha: catalog browsing and config writing may work, and a Windows first-contact test confirmed that new Hermes sessions picked up the selected default after opening Hermes Settings → Apply once. The live Desktop Apply helper is still Linux-focused until a Windows dashboard discovery path is added.
+
+Hermes Desktop on Windows may visually update the model pill/current-chat display after Settings → Apply even for an existing chat. Treat that as UI-only unless switching away and back confirms the session model actually changed; ongoing sessions may retain their original model while new sessions use the new default.
 
 
 ## Files

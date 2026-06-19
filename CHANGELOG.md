@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.8 — Windows first-contact notes
+
+- Documents the successful Windows/MINGW64 first-contact install path.
+- Notes that Hermes Desktop on Windows may use `%LOCALAPPDATA%\hermes` as active home while `~/.hermes` is stale.
+- Documents that new sessions use the selected default after Settings → Apply on Windows, while an existing chat's model pill can visually mislead.
+
 ## 0.1.7 — read-only first-contact install
 
 - Tightens the Hermes-native onboarding prompt: initial install verification must not call `POST /api/set` or modify the user's Hermes config.
