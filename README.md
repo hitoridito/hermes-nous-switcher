@@ -73,6 +73,7 @@ It changes the default model for **new Hermes chats**. It does not switch the mo
 - Fetches the live Nous/OpenRouter-compatible model catalog from `https://inference-api.nousresearch.com/v1/models`.
 - Caches the catalog at `~/.hermes/cache/nous_full_catalog.json` for fast loads and offline fallback.
 - Shows model name, id, context length, input/output pricing per million tokens, and capability badges.
+- Shows a read-only Nous credits card using Hermes' existing Nous Portal auth when available; tokens and raw account payloads stay server-side.
 - Supports search, filters (`Vision`, `Reasoning`, `Free`), and sorting (`cheapest input`, `cheapest output`, `largest context`, `name`).
 - Writes the selected model to `~/.hermes/config.yaml` as:
 
@@ -174,6 +175,7 @@ nous_switcher/
 | `GET` | `/api/catalog` | cached/full model catalog |
 | `GET` | `/api/catalog?refresh=true` | force live re-fetch |
 | `GET` | `/api/current` | current Hermes `model:` config block |
+| `GET` | `/api/credits` | sanitized Nous Portal credit lines via Hermes auth; no tokens/raw payloads returned |
 | `POST` | `/api/set` | set default model; body: `{ "model_id": "...", "provider": "nous" }` |
 
 ## Safety / privacy
@@ -181,6 +183,7 @@ nous_switcher/
 - Server binds only to `127.0.0.1`.
 - CORS only allows localhost origins.
 - No API keys are needed to fetch the public catalog.
+- The credits card reuses Hermes' existing Nous Portal OAuth/account helper on the backend. OAuth tokens and raw account payloads are never returned to browser JavaScript.
 - Config writes are atomic (`config.yaml.tmp` then `os.replace`).
 - Each successful config write creates a timestamped backup next to `config.yaml`.
 - The live Desktop Apply helper reads the ephemeral dashboard session token from the same-user local Hermes Desktop process and sends it only to the loopback dashboard endpoint. It is not logged, persisted, or returned by the API.

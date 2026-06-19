@@ -25,6 +25,7 @@ breaking V0.
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -39,7 +40,7 @@ import config_writer
 import hermes_catalog_overlay
 import hermes_desktop_apply
 
-VERSION = "0.1.5"
+VERSION = "0.1.11"
 HOST = "127.0.0.1"
 PORT = 9120
 HERMES_HOME = Path(os.environ.get("HERMES_HOME", "") or str(Path.home() / ".hermes")).expanduser()
@@ -72,6 +73,74 @@ class SetModelRequest(BaseModel):
     model_id: str = Field(..., min_length=1, max_length=512, description="Model id, e.g. 'google/gemini-3-pro-image'")
     provider: str = Field(default="nous", min_length=1, max_length=64)
     base_url: str = Field(default="", max_length=512)
+
+
+def _candidate_hermes_agent_paths() -> list[Path]:
+    """Likely Hermes Agent source dirs for importing account-usage helpers."""
+    candidates = [
+        HERMES_HOME / "hermes-agent",
+        Path.home() / ".hermes" / "hermes-agent",
+    ]
+    # Windows first-contact installs often run under MINGW64 bash where HOME is
+    # C:\Users\name while active Hermes home is %LOCALAPPDATA%\hermes. The
+    # explicit HERMES_HOME candidate above covers that layout.
+    seen: set[str] = set()
+    unique: list[Path] = []
+    for p in candidates:
+        key = str(p.expanduser().resolve()) if p.exists() else str(p.expanduser())
+        if key not in seen:
+            seen.add(key)
+            unique.append(p.expanduser())
+    return unique
+
+
+def _ensure_hermes_agent_import_path() -> tuple[bool, str | None]:
+    for candidate in _candidate_hermes_agent_paths():
+        if (candidate / "agent" / "account_usage.py").exists():
+            c = str(candidate)
+            if c not in sys.path:
+                sys.path.insert(0, c)
+            return True, c
+    return False, None
+
+
+def _nous_credits() -> dict[str, Any]:
+    """Return sanitized Nous credits from Hermes' own Portal auth helpers.
+
+    The browser never sees OAuth tokens or raw account payloads. This endpoint
+    intentionally exposes only rendered balance lines and safe affordances.
+    """
+    ok, import_path = _ensure_hermes_agent_import_path()
+    if not ok:
+        return {
+            "ok": False,
+            "logged_in": False,
+            "reason": "Hermes Agent source was not found; cannot reuse Portal auth helpers.",
+            "portal_url": "https://portal.nousresearch.com/products",
+        }
+    try:
+        from agent.account_usage import build_credits_view
+
+        view = build_credits_view(timeout=8.0)
+        return {
+            "ok": bool(view.logged_in),
+            "logged_in": bool(view.logged_in),
+            "depleted": bool(view.depleted),
+            "balance_lines": list(view.balance_lines),
+            "topup_url": view.topup_url,
+            "portal_url": "https://portal.nousresearch.com/products",
+            "source": "hermes-portal-auth",
+            "hermes_agent_path": import_path,
+        }
+    except Exception as exc:
+        return {
+            "ok": False,
+            "logged_in": False,
+            "reason": f"Nous credits unavailable: {type(exc).__name__}",
+            "portal_url": "https://portal.nousresearch.com/products",
+            "source": "hermes-portal-auth",
+            "hermes_agent_path": import_path,
+        }
 
 
 # ---------------------------------------------------------------------------
@@ -112,6 +181,11 @@ def get_current() -> dict[str, Any]:
         "home": str(HERMES_HOME),
         "config_path": str(HERMES_HOME / "config.yaml"),
     }
+
+
+@app.get("/api/credits")
+def get_credits() -> dict[str, Any]:
+    return _nous_credits()
 
 
 @app.post("/api/set")

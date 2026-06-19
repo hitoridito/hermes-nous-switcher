@@ -15,6 +15,7 @@ metadata:
 Use this skill when you want a small local Hermes companion app that:
 
 - fetches the Nous model catalog,
+- shows read-only Nous Portal credit balance when Hermes auth is available,
 - lets a user search/filter/sort models,
 - writes the selected model as Hermes' default for new chats,
 - makes full-catalog Nous models visible in Hermes Settings,
@@ -162,6 +163,7 @@ A good minimal UI has:
 - filters for vision/reasoning/free,
 - sorting by price/context/name,
 - model rows with id/context/pricing/capability badges,
+- a small credits card that uses Hermes' existing Nous Portal auth helpers on the backend only,
 - clear copy that says “default for new chats,” not “active chat switched.”
 
 ## Safety Checklist
@@ -170,6 +172,7 @@ A good minimal UI has:
 - Bind server to `127.0.0.1` only.
 - Restrict CORS to localhost.
 - Do not require API keys for public catalog fetches.
+- For credits, reuse Hermes Agent's `agent.account_usage.build_credits_view()` / Nous Portal auth helpers server-side only. Never return OAuth tokens, dashboard session tokens, or raw account payloads to browser JS.
 - Write config atomically and create backups.
 - Never log dashboard session tokens.
 - Do not call `POST /api/set` during initial installation; wait for explicit model choice/permission.

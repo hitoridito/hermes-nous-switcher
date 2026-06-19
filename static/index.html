@@ -120,6 +120,30 @@
   .current .model-id   { font-family: var(--mono); color: var(--text-soft); font-size: 12px; }
   .current .provider   { font-size: 12px; color: var(--text-mute); justify-self: end; }
 
+  .credits {
+    background: rgba(34, 26, 20, 0.72);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    margin: -8px 0 20px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 8px 14px;
+    align-items: center;
+  }
+  .credits .label {
+    font-size: 11px;
+    color: var(--text-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+  .credits .lines { font-size: 12px; color: var(--text-soft); }
+  .credits .main { color: var(--text); font-weight: 500; }
+  .credits .muted { color: var(--text-mute); }
+  .credits .actions { display: flex; gap: 8px; align-items: center; }
+  .credits.err { border-color: rgba(196,101,76,0.35); }
+  .credits.depleted { border-color: rgba(196,164,88,0.45); }
+
   /* ---------------------------------------------------------------
      Controls — search + filters
      --------------------------------------------------------------- */
@@ -350,6 +374,15 @@
     <div class="provider" id="cur-provider">—</div>
   </section>
 
+  <section class="credits" id="credits-card">
+    <div class="label">Nous credits</div>
+    <div class="lines" id="credits-lines"><span class="muted">Checking Portal auth…</span></div>
+    <div class="actions">
+      <button class="btn icon" id="credits-refresh" title="Refresh Nous credits">↻</button>
+      <a id="credits-link" href="https://portal.nousresearch.com/products" target="_blank" rel="noreferrer">Portal ↗</a>
+    </div>
+  </section>
+
   <div class="controls">
     <div class="search">
       <input id="search" type="search" placeholder="Search by name or id…" autocomplete="off" spellcheck="false">
@@ -398,6 +431,7 @@
     filters: new Set(),
     sort: 'catalog',
     saving: false,
+    credits: null,
   };
 
   // -----------------------------------------------------------------
@@ -471,6 +505,39 @@
     $('#cur-name').textContent = name;
     $('#cur-id').textContent   = c.default || '—';
     $('#cur-provider').textContent = c.provider ? `provider: ${c.provider}` : '—';
+  }
+
+  function renderCredits(data) {
+    const card = $('#credits-card');
+    const lines = $('#credits-lines');
+    const link = $('#credits-link');
+    card.className = 'credits';
+    if (!data || !data.logged_in) {
+      card.classList.add('err');
+      lines.innerHTML = `<span class="muted">Credits unavailable${data?.reason ? ': ' + escapeHtml(data.reason) : ''}</span>`;
+      link.href = data?.portal_url || 'https://portal.nousresearch.com/products';
+      return;
+    }
+    if (data.depleted) card.classList.add('depleted');
+    const safeLines = (data.balance_lines || []).filter(Boolean);
+    const main = safeLines.find(l => l.includes('Total usable:'))
+      || safeLines.find(l => l.includes('Subscription:'))
+      || safeLines[0]
+      || 'Nous credits available';
+    const rest = safeLines.filter(l => l !== main && !l.startsWith('📈') && !l.startsWith('Provider:')).slice(0, 3);
+    lines.innerHTML = `<div class="main">${escapeHtml(main.replace('Total usable: ', ''))}</div>`
+      + (rest.length ? `<div class="muted">${rest.map(escapeHtml).join(' · ')}</div>` : '');
+    link.href = data.topup_url || data.portal_url || 'https://portal.nousresearch.com/products';
+  }
+
+  async function loadCredits() {
+    try {
+      const data = await api('/api/credits');
+      state.credits = data;
+      renderCredits(data);
+    } catch (e) {
+      renderCredits({ logged_in: false, reason: e.message, portal_url: 'https://portal.nousresearch.com/products' });
+    }
   }
 
   async function loadCatalog({ refresh = false } = {}) {
@@ -626,12 +693,14 @@
     render();
   });
   $('#refresh-btn').addEventListener('click', () => loadCatalog({ refresh: true }));
+  $('#credits-refresh').addEventListener('click', () => loadCredits());
 
   // -----------------------------------------------------------------
   // Boot
   // -----------------------------------------------------------------
   (async function boot() {
     await loadHealth();
+    loadCredits();
     try {
       $('#src-url').textContent = '/v1/models (inference-api.nousresearch.com)';
       await loadCatalog();

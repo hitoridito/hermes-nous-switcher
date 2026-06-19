@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.11 — Nous credits card
+
+- Adds `GET /api/credits`, a read-only endpoint that reuses Hermes Agent's own Nous Portal auth/account helpers.
+- Adds a small UI credits card showing sanitized balance lines and a Portal/top-up link.
+- Keeps OAuth tokens and raw account payloads server-side only; the browser receives no secrets.
+- Fails soft when Hermes Agent source/auth is unavailable.
+
 ## 0.1.10 — official links
 
 - Adds tasteful official links to Hermes Agent, Hermes Agent docs, and Nous Research.
