@@ -38,6 +38,14 @@ Current state:
 
 Windows first-contact note: Hermes Desktop may use `%LOCALAPPDATA%\hermes` as the active Hermes home/config path instead of `~/.hermes`. In one Windows test, `~/.hermes` existed but was stale, while the live config was under `%LOCALAPPDATA%\hermes`. Have Hermes detect this before starting the server.
 
+### First-contact install notes
+
+This is not a benchmark; it is provenance for the agent-native install path.
+
+| Date | Host | Installing Hermes/model | Result |
+|---|---|---|---|
+| 2026-06-19 | Hermes Desktop on Windows 10 / MINGW64 bash | Minimax M3 (Medium) | Public repo cloned, README + skill read, local `.venv` created, app started at `127.0.0.1:9120`, `%LOCALAPPDATA%\hermes` correctly detected as active home, new sessions used the selected default after Hermes Settings → Apply. |
+
 The app should fail soft: if live Desktop Apply is unavailable, it can still write config/catalog overlay and report a warning instead of crashing.
 
 ## Status

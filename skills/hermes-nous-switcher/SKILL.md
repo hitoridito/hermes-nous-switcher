@@ -106,13 +106,15 @@ Only call `POST /api/set` after the user explicitly chooses a model or explicitl
 
 ## Windows First-Contact Result
 
-A Windows/MINGW64 first-contact install confirmed:
+A Windows/MINGW64 first-contact install using **Minimax M3 (Medium)** in a fresh Hermes Desktop session confirmed:
 
-- The repo can be cloned and run from a fresh Hermes session.
+- The public repo can be cloned and run from a fresh Hermes session.
 - A local `.venv` works well when Hermes' bundled venv layout varies.
 - `HERMES_HOME` should be pointed at the active Desktop home, e.g. `%LOCALAPPDATA%\hermes`, not blindly at `~/.hermes`.
 - Because live Desktop Apply is Linux-focused, the user may need to open Hermes Settings → Apply after selecting a model.
 - New Hermes sessions then use the selected default.
+
+This is provenance for the install path, not a benchmark claim. Record future first-contact installs with host OS, shell, installing Hermes/model, and result.
 
 Possible Windows UI quirk: after Settings → Apply, the model pill/current-chat display may appear to change for an already-running chat. Verify by switching away and back; the ongoing session can still retain its original model while new sessions use the new default.
 

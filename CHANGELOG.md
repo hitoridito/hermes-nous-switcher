@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.9 — first-contact model provenance
+
+- Adds a README first-contact install note naming the installing model: Hermes Desktop Windows with Minimax M3 (Medium).
+- Clarifies that first-contact install notes are provenance for the agent-native install path, not benchmark claims.
+
 ## 0.1.8 — Windows first-contact notes
 
 - Documents the successful Windows/MINGW64 first-contact install path.
